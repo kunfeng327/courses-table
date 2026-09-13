@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课表 · 彭昆凤 · 2026-2027-1</title>
+<style>
+  :root{
+    --bg:#EFF2EF; --main:#5A7A5E; --main-dark:#4A6A4E;
+    --text:#333; --sub:#8A9A8E; --line:rgba(90,122,94,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+  /* 顶部导航 */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;max-width:760px;margin:0 auto}
+  .nav .class-pill{background:#E2EAE3;color:var(--main);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600}
+  .nav h1{font-size:19px;font-weight:800}
+  .nav .sem{font-size:12px;color:var(--sub);font-weight:400}
+
+  /* 周次 Tab */
+  .weeks{display:flex;gap:6px;overflow-x:auto;padding:10px 16px 4px;max-width:760px;margin:0 auto;scrollbar-width:none}
+  .weeks::-webkit-scrollbar{display:none}
+  .weeks button{flex:none;border:none;background:transparent;color:#666;font-size:14px;font-weight:700;padding:7px 13px;border-radius:18px;cursor:pointer;position:relative}
+  .weeks button.has{color:var(--main)}
+  .weeks button.cur{background:var(--main);color:#fff}
+  .weeks button.cur::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-2px;width:16px;height:3px;border-radius:2px;background:var(--main)}
+  .weeks button.all{color:var(--main)}
+
+  .curweek{display:flex;align-items:center;justify-content:center;gap:14px;max-width:760px;margin:2px auto 0}
+  .curweek span{font-size:20px;font-weight:800;color:var(--main);min-width:86px;text-align:center}
+  .curweek button{width:34px;height:34px;border:none;border-radius:50%;background:#E2EAE3;color:var(--main);font-size:18px;font-weight:800;cursor:pointer;line-height:1}
+  .curweek button:hover{background:var(--main);color:#fff}
+
+  /* 主体卡片 */
+  .wrap{max-width:760px;margin:8px auto 30px;padding:0 8px}
+
+  .page{display:none}
+  .page.active{display:block}
+
+  /* 星期表头 */
+  .dayhead{display:grid;grid-template-columns:52px repeat(7,1fr);gap:3px;padding:4px 4px 8px}
+  .dayhead .mon{align-self:end;text-align:center;font-size:15px;font-weight:800;color:var(--main)}
+  .dayhead .day{text-align:center;line-height:1.3}
+  .dayhead .day b{display:block;font-size:13px;font-weight:700;color:#444}
+  .dayhead .day span{font-size:10px;color:var(--sub)}
+  .dayhead .day.weekend b{color:#b0b0b0}
+
+  /* 课程网格 */
+  .grid{display:grid;grid-template-columns:52px repeat(7,1fr);gap:3px}
+  .axis{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:2px 0}
+  .axis b{font-size:17px;font-weight:800;color:#3a4a3e}
+  .axis span{font-size:8.5px;color:var(--sub);line-height:1.25;white-space:nowrap}
+  .axis.morning::before{content:"上午";font-size:9px;color:var(--main);margin-bottom:3px;font-weight:700}
+  .axis.noon::before{content:"午间";font-size:9px;color:#c9a227;margin-bottom:3px;font-weight:700}
+  .axis.aft::before{content:"下午";font-size:9px;color:var(--main);margin-bottom:3px;font-weight:700}
+  .axis.eve::before{content:"晚间";font-size:9px;color:#7a6a9e;margin-bottom:3px;font-weight:700}
+  .gcell{min-height:52px}
+
+  /* 课程色块：顶部深色窄带 + 浅色主体 */
+  .course{
+    border-radius:12px;padding:8px 6px 6px;overflow:hidden;height:100%;
+    display:flex;flex-direction:column;justify-content:flex-start;
+    box-shadow:0 1px 3px rgba(60,80,60,.08);
+  }
+  .course b{font-size:12.5px;font-weight:800;line-height:1.25;color:#2f3a30;word-break:break-all}
+  .course b.sn{display:none}
+  .course i{font-style:normal;font-size:10px;color:#6f7f72;margin-top:2px;line-height:1.3}
+  .course .wk{margin-top:auto;font-size:9px;color:rgba(60,80,60,.55);font-weight:700}
+  .course.pend{outline:1.5px dashed rgba(0,0,0,.25);outline-offset:-4px}
+
+  .empty{color:var(--sub);text-align:center;padding:60px 0;font-size:14px}
+  .tip{max-width:760px;margin:0 auto 40px;padding:0 16px;font-size:11px;color:var(--sub);line-height:1.6}
+  .tip b{color:var(--main)}
+  @media print{.weeks,.curweek{display:none}}
+  /* 手机优化 */
+  @media (max-width:480px){
+    .nav{padding:12px 10px 4px}
+    .nav .class-pill{padding:5px 10px;font-size:11px}
+    .nav h1{font-size:17px}
+    .nav .sem{font-size:10px}
+    .weeks{padding:8px 10px 2px}
+    .weeks button{padding:6px 10px;font-size:13px}
+    .dayhead{grid-template-columns:34px repeat(7,1fr)}
+    .grid{grid-template-columns:34px repeat(7,1fr)}
+    .dayhead .day b{font-size:11px}
+    .dayhead .day span{font-size:8px}
+    .axis b{font-size:13px}
+    .axis span{display:none}   /* 手机上隐藏具体时间，只留节次号 */
+    .axis::before{writing-mode:vertical-lr;letter-spacing:1px;font-size:9px}
+    .gcell{min-height:64px}
+    .course{padding:3px 2px;border-radius:8px}
+    .course b.fn{display:none}
+    .course b.sn{display:block;font-size:10.5px;line-height:1.2}
+    .course i{font-size:9px}
+    .wrap{padding:0 3px}
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="class-pill">计算机24-1 ›</div>
+  <div style="text-align:center">
+    <h1 style="font-size:19px;font-weight:800">课表</h1>
+    <div class="sem">2026-2027-1 · 彭昆凤</div>
+  </div>
+  <div class="class-pill" style="visibility:hidden">占位</div>
+</div>
+
+<!-- 当前周指示：‹ 第 N 周 › -->
+<div class="curweek">
+  <button id="prevBtn" title="上一周（←）">‹</button>
+  <span id="curWeek">第 1 周</span>
+  <button id="nextBtn" title="下一周（→）">›</button>
+</div>
+
+<div class="weeks" id="weeks"></div>
+<div class="wrap" id="pages"></div>
+
+<p class="tip">
+  <b>说明</b>：学期第 1 周周一为 <b>2026-09-07</b>，如不符可改代码中的 START_DATE。虚线框为"待抽签"课程。无固定时间：形势与政策、Java Web课设、数据库课设。<br>
+  操作：点击周次栏数字直接跳周（像遥控器）；顶部 ‹ › 或键盘 ←/→ 逐周切换。● 有课的周，◐ 课设实践周（第10-11周数据库课设、第13-14周Java Web课设）。第12、15-19周暂无安排。
+</p>
+
+<script>
+// ===== 配置 =====
+const START_DATE=new Date(2026,8,7); // 第1周周一（2026-09-07）
+const TOTAL_WEEKS=19;
+const times=["08:00-08:45","08:50-09:35","09:50-10:35","10:40-11:25","11:30-12:15",
+             "13:30-14:15","14:20-15:05","15:20-16:05","16:10-16:55","17:00-17:45",
+             "18:30-19:15","19:20-20:05","20:10-20:55"];
+const days=["一","二","三","四","五","六","日"];
+
+// 马卡龙配色（浅底 + 深顶带）
+const palette=[
+ {bg:"linear-gradient(180deg,#cfe3d2 0,#cfe3d2 7%,#e2eee3 8%,#e2eee3 100%)"},
+ {bg:"linear-gradient(180deg,#f0e2b8 0,#f0e2b8 7%,#f3ead0 8%,#f3ead0 100%)"},
+ {bg:"linear-gradient(180deg,#bcd6ee 0,#bcd6ee 7%,#d8e7f4 8%,#d8e7f4 100%)"},
+ {bg:"linear-gradient(180deg,#c8e4de 0,#c8e4de 7%,#ddf0eb 8%,#ddf0eb 100%)"},
+ {bg:"linear-gradient(180deg,#e4d6ef 0,#e4d6ef 7%,#efe5f5 8%,#efe5f5 100%)"},
+ {bg:"linear-gradient(180deg,#f2d4cf 0,#f2d4cf 7%,#f7e5e1 8%,#f7e5e1 100%)"},
+ {bg:"linear-gradient(180deg,#d4e6ef 0,#d4e6ef 7%,#e4f0f6 8%,#e4f0f6 100%)"},
+ {bg:"linear-gradient(180deg,#dbe8c9 0,#dbe8c9 7%,#e7f0da 8%,#e7f0da 100%)"},
+ {bg:"linear-gradient(180deg,#eed9c8 0,#eed9c8 7%,#f4e7db 8%,#f4e7db 100%)"},
+ {bg:"linear-gradient(180deg,#cdd9ea 0,#cdd9ea 7%,#e0e8f2 8%,#e0e8f2 100%)"},
+ {bg:"linear-gradient(180deg,#d9e9d5 0,#d9e9d5 7%,#e6f1e3 8%,#e6f1e3 100%)"}
+];
+
+// sessions: [周次数组, 星期索引0-6, 起始节, 结束节, 教室]
+const courses=[
+ {name:"计算机网络安全",short:"网络安全",teacher:"吴玥",status:"选中",sessions:[
+   [[9],3,10,13,"计算中心-8"],[[9],0,10,13,"计算中心-8"],[[5,6,7,8],3,10,12,"二教508"],[[4,6,7,8],2,3,5,"二教209"]]},
+ {name:"机器学习基础",short:"机器学习",teacher:"徐红艳",status:"选中",sessions:[
+   [[2,3,4,6,7,8,9],1,3,4,"二教509"],[[5,6],4,3,4,"二教608"],[[2,3,4,6,7,8,9],0,1,2,"二教608"],[[6,9],0,6,9,"计算中心-5"]]},
+ {name:"乐理与歌唱",short:"乐理歌唱",teacher:"朱歌",status:"选中",sessions:[
+   [[2,3,6,7,8,9,10,11],2,10,12,"二教110"]]},
+ {name:"人类健康的免疫学基础",short:"免疫学",teacher:"张浩林",status:"选中",sessions:[
+   [[2,5,6,7,8,9,10,11],4,10,12,"二教608"]]},
+ {name:"就业创业指导（求职礼仪）",short:"求职礼仪",teacher:"连鹏",status:"待抽签",sessions:[
+   [[8],6,3,4,"二教209"]]},
+ {name:"就业创业指导（面试技巧）",short:"面试技巧",teacher:"陈思晓",status:"待抽签",sessions:[
+   [[8],6,6,7,"二教209"]]},
+ {name:"就业创业指导（简历制作）",short:"简历制作",teacher:"周韵",status:"待抽签",sessions:[
+   [[9],5,10,11,"二教308"]]},
+ {name:"就业创业指导（留学）",short:"留学指导",teacher:"林思言",status:"待抽签",sessions:[
+   [[6],5,3,4,"二教208"]]},
+ {name:"Java Web技术",short:"JavaWeb",teacher:"王新阳",status:"选中",sessions:[
+   [[2,3,5,6,7,8,9,10],3,1,2,"二教609"],[[2,3,4,6,7,8,9,10],1,6,7,"二教508"],[[4,6,8,9],2,1,2,"计算中心-6"]]},
+ {name:"计算机体系结构",short:"体系结构",teacher:"付红萍",status:"选中",sessions:[
+   [[1,2,3,5,6,7,8,9],3,3,4,"二教502"],[[1,2,3,4,6,7,8,9],1,1,2,"二教602"],[[8,9],4,1,4,"计算中心-8"]]},
+ {name:"数据库原理与应用B",short:"数据库B",teacher:"张晓宇",status:"选中",sessions:[
+   [[8],4,6,9,"计算中心-7"],[[7],4,6,7,"计算中心-7"],[[1],0,3,4,"二教201"],[[1],3,6,7,"B0702"],[[6],4,6,7,"计算中心-7"],[[2,3,4,6,7,8],0,3,4,"二教201"],[[2,3,7],3,6,7,"B0702"]]}
+];
+const MAXP=Math.max(...courses.flatMap(c=>c.sessions.map(s=>s[3])));
+// 实践周（课设，无固定节次）：周次 -> 标题
+const practice={10:"数据库原理与应用B（课程设计）",11:"数据库原理与应用B（课程设计）",13:"Java Web技术（课程设计）",14:"Java Web技术（课程设计）"};
+const weekHas=w=>courses.some(c=>c.sessions.some(s=>s[0].includes(w)))||practice[w];
+
+function fmtDate(w,di){
+  const d=new Date(START_DATE.getTime()+(w-1)*7*864e5+di*864e5);
+  return String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function axisClass(p){
+  if(p<=5)return "morning"; if(p===6)return "noon";
+  if(p<=9)return "aft"; return "eve";
+}
+
+// 课程块 HTML
+function blockHTML(ci,c,room,extra){
+  return `<div class="course${c.status==="待抽签"?" pend":""}" style="background:${palette[ci].bg}"
+    onclick="detail('${c.name.replace(/'/g,"")}','${c.teacher}','${room}')">
+    <b class="fn">${c.name}</b><b class="sn">${c.short||c.name}</b><i>${c.teacher}<br>@${room}</i>${extra?`<span class="wk">${extra}</span>`:""}
+  </div>`;
+}
+function detail(name,teacher,room){
+  const d=document.createElement("div");
+  d.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:99";
+  d.innerHTML=`<div style="background:#fff;border-radius:16px;padding:20px 24px;max-width:78vw;text-align:center">
+    <b style="font-size:16px;color:#3a4a3e">${name}</b>
+    <div style="font-size:13px;color:#666;margin-top:6px">${teacher} · ${room}</div>
+    <div style="font-size:12px;color:#999;margin-top:4px">点击任意处关闭</div></div>`;
+  d.onclick=()=>d.remove();
+  document.body.appendChild(d);
+}
+
+// 构建一页网格（items: {ci,c,d,p1,p2,room,wkText}）
+function buildGrid(items,withWeekLabel){
+  // 左侧节次轴
+  let html=`<div class="dayhead"><div class="mon"></div>`;
+  html+=items.dates.map((dt,di)=>`<div class="day${di>=5?" weekend":""}"><b>周${days[di]}</b><span>${dt}</span></div>`).join("");
+  html+=`</div><div class="grid" style="grid-template-rows:repeat(${MAXP},minmax(52px,1fr))">`;
+  for(let p=1;p<=MAXP;p++){
+    html+=`<div class="axis ${axisClass(p)}"><b>${p}</b><span>${times[p-1]}</span></div>`;
+    for(let d=0;d<7;d++) html+=`<div class="gcell" style="grid-column:${d+2};grid-row:${p}"></div>`;
+  }
+  items.list.forEach(it=>{
+    html+=`<div style="grid-column:${it.d+2};grid-row:${it.p1}/${it.p2+1};padding:1.5px 0">
+      ${blockHTML(it.ci,it.c,it.room,withWeekLabel?it.wkText:"")}</div>`;
+  });
+  return html+"</div>";
+}
+
+const weeksBar=document.getElementById("weeks");
+const pagesEl=document.getElementById("pages");
+let first=true;
+
+// 各周页面
+for(let w=1;w<=TOTAL_WEEKS;w++){
+  const page=document.createElement("div");
+  page.className="page"+(first?" active":"");page.id="wk"+w;
+  const list=[];
+  courses.forEach((c,ci)=>c.sessions.forEach(([wks,d,p1,p2,room])=>{
+    if(wks.includes(w)) list.push({ci,c,d,p1,p2,room});
+  }));
+  if(list.length===0&&practice[w]){
+    page.innerHTML=`<div class="card" style="background:#fff;border-radius:12px;padding:20px 16px;text-align:center">
+      <div style="font-size:38px">🛠️</div>
+      <div style="font-size:16px;font-weight:800;color:var(--main);margin:8px 0 4px">本周为实践周</div>
+      <div style="font-size:14px;color:#555">${practice[w]}</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:6px">具体时间地点以学院通知为准</div>
+    </div>`;
+  }else if(list.length===0){
+    page.innerHTML=`<div class="empty">第 ${w} 周 暂无课程安排 🎉</div>`;
+  }else{
+    const dates=days.map((_,di)=>fmtDate(w,di));
+    page.innerHTML=(practice[w]?`<div style="background:#EDF3EA;border:1px dashed #9db8a0;border-radius:10px;padding:8px 12px;margin:0 4px 10px;font-size:12px;color:#4A6A4E"><b>🛠️ 本周实践：</b>${practice[w]}（具体安排以学院通知为准）</div>`:"")+buildGrid({list,dates},false);
+  }
+  pagesEl.appendChild(page);
+
+  const b=document.createElement("button");
+  b.innerHTML=courses.some(c=>c.sessions.some(s=>s[0].includes(w)))?`●${w}`:(practice[w]?`◐${w}`:w);
+  b.className=(weekHas(w)?"has ":"")+(first?"cur":"");
+  b.title="第"+w+"周";b.onclick=()=>show(w);
+  weeksBar.appendChild(b);
+  first=false;
+}
+
+let cur=1;
+function show(w){
+  cur=w;
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("wk"+w).classList.add("active");
+  document.getElementById("curWeek").textContent=practice[w]&&!courses.some(c=>c.sessions.some(s=>s[0].includes(w)))?`第 ${w} 周 实践`:weekHas(w)?`第 ${w} 周`:`第 ${w} 周（无课）`;
+  [...weeksBar.children].forEach((b,i)=>b.classList.toggle("cur",i+1===w));
+  // 仅横向滚动周次栏，不影响页面滚动位置
+  const btn=weeksBar.children[w-1];
+  weeksBar.scrollLeft=btn.offsetLeft-weeksBar.clientWidth/2+btn.offsetWidth/2;
+  requestAnimationFrame(()=>window.scrollTo(0,0));
+}
+document.getElementById("prevBtn").onclick=()=>{if(cur>1)show(cur-1)};
+document.getElementById("nextBtn").onclick=()=>{if(cur<TOTAL_WEEKS)show(cur+1)};
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft"&&cur>1)show(cur-1);
+  if(e.key==="ArrowRight"&&cur<TOTAL_WEEKS)show(cur+1);
+});
+show(1);
+</script>
+</body>
+</html>
