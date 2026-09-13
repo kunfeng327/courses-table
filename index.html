@@ -86,7 +86,7 @@
     .dayhead .day b{font-size:11px}
     .dayhead .day span{font-size:8px}
     .axis b{font-size:13px}
-    .axis span{display:none}   /* 手机上隐藏具体时间，只留节次号 */
+    .axis span{display:block;font-size:7.5px;line-height:1.2;white-space:normal}  /* 手机上以两行小字显示起止时间 */
     .axis::before{writing-mode:vertical-lr;letter-spacing:1px;font-size:9px}
     .gcell{min-height:64px}
     .course{padding:3px 2px;border-radius:8px}
@@ -211,7 +211,7 @@ function buildGrid(items,withWeekLabel){
   html+=items.dates.map((dt,di)=>`<div class="day${di>=5?" weekend":""}"><b>周${days[di]}</b><span>${dt}</span></div>`).join("");
   html+=`</div><div class="grid" style="grid-template-rows:repeat(${MAXP},minmax(52px,1fr))">`;
   for(let p=1;p<=MAXP;p++){
-    html+=`<div class="axis ${axisClass(p)}"><b>${p}</b><span>${times[p-1]}</span></div>`;
+    html+=`<div class="axis ${axisClass(p)}"><b>${p}</b><span>${times[p-1].replace("-","<br>")}</span></div>`;
     for(let d=0;d<7;d++) html+=`<div class="gcell" style="grid-column:${d+2};grid-row:${p}"></div>`;
   }
   items.list.forEach(it=>{
